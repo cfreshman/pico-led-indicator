@@ -131,22 +131,34 @@ class LED:
     PWM_DUTY_CYCLE_MAX = 65535
 
     def __init__(self, pin='LED', brightness=1):
-        if not isinstance(pin, Pin): pin = Pin(pin, Pin.OUT)
-        try:
-            self.pwm = PWM(pin)
-            self.pwm.freq(1000)
-        except ValueError as e:
-            if 'expecting a regular GPIO Pin' in str(e):
-                self.pwm = LED._PWM_Mock(pin)
-            else: raise e
+        pins = pin if isinstance(pin, list) else [pin]
+        self.pwms = []
+        for pin in pins:
+            if not isinstance(pin, Pin): pin = Pin(pin, Pin.OUT)
+            pwm = None
+            try:
+                pwm = PWM(pin)
+                pwm.freq(1000)
+            except ValueError as e:
+                if 'expecting a regular GPIO Pin' in str(e):
+                    pwm = LED._PWM_Mock(pin)
+                else: raise e
+            self.pwms.append(pwm)
         self.brightness = brightness
 
     def on(self, brightness=None):
-        duty = int((brightness or self.brightness) * LED.PWM_DUTY_CYCLE_MAX)
-        self.pwm.duty_u16(duty)
-    def off(self): self.pwm.duty_u16(0)
-    def set(self, on): self.on() if on else self.off()
-    def toggle(self): self.off() if self.pwm.duty_u16() else self.on()
+        duty = int((
+            brightness
+            if type(brightness) is float
+            else self.brightness) * LED.PWM_DUTY_CYCLE_MAX)
+        [x.duty_u16(duty) for x in self.pwms]
+    def off(self): [x.duty_u16(0) for x in self.pwms]
+
+    def get(self): 
+        return max(x.duty_u16() / LED.PWM_DUTY_CYCLE_MAX for x in self.pwms)
+    def set(self, on): self.on(on) if on else self.off()
+    def toggle(self): self.off() if self.get() else self.on()
+
     def pulse(self, seconds=.1):
         async def _inner():
             self.toggle()

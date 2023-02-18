@@ -1,48 +1,25 @@
 ## pico-led-indicator
 
-A Pico W webserver which has been set up to toggle an LED based on the state of some endpoint
+Sync an LED (or other component) to the state of an API endpoint. Press BOOTSEL to turn off  
+(You can use this as a physical notification system or daily reminder)  
 
-See [pico-fi](https://github.com/cfreshman/pico-fi) for more information on the underlying framework
+See [pico-fi](https://github.com/cfreshman/pico-fi) for more information on the underlying webserver  
+See [pico-bootsel](https://github.com/cfreshman/pico-bootsel) for the BOOTSEL script  
 
-For example, sync the LED state to https://freshman.dev/switches:
-```python
-import time, urequests
-import pico_fi
-from lib import LED
-from lib.logging import log
-
-
-led = LED(17, .1)
-app = pico_fi.App(id='w-pico', password='pico1234', indicator='LED')
-
-@app.connected
-def connected():
-  # replace this with your preferred endpoint
-  method = 'GET'
-  url = 'https://freshman.dev/api/switch/default/default'
-  log.info('attempting to', method, url)
-  state = None
-  while True:
-    try:
-      response = urequests.request(method, url)
-      # parse the truthiness of your endpoint response here
-      newState = response.json()['item']['state']
-      if state != newState:
-        log.info('new LED state:', newState)
-        led.set(newState)
-        state = newState
-      response.close()
-    except Exception as e:
-      log.exception(e)
-    time.sleep(.5)
-
-app.run()
-```
+By default, the LED is synced to https://freshman.dev/switches
 
 ### Prerequisites
 
-1. A Pico W loaded with [MicroPython](https://www.raspberrypi.com/documentation/microcontrollers/micropython.html#drag-and-drop-micropython)
+Hardware
+1. Pico W
+1. USB to Micro USB data cable
+1. LED _(optional - defaults to on-board LED)_
+> [I've created a starter kit with these items](https://freshman.dev/pico-starter)  
+
+Software
+1. [MicroPython](https://www.raspberrypi.com/documentation/microcontrollers/micropython.html#drag-and-drop-micropython)
 1. [rshell](https://github.com/dhylands/rshell)
+> Alternatively, make your edits and upload to [pico-repo.com](https://pico-repo.com)'s how-to section to generate a drag-n-drop .uf2. Then skip to `Connect to the internet`
 
 ### Install
 
@@ -60,9 +37,16 @@ app.run()
    ```
 1. Soft-reboot with `CTRL+D`
 
+### Connect to the internet
 You should see a new `w-pico` wireless network appear (password: `pico1234`). Connect to this network with your computer or smartphone. If the portal doesn't open automatically, try opening an arbitrary website.
 
-Notes:
+
+### Physical setup
+1. Connect an LED between GP17 and GND  
+1. Go to https://freshman.dev/switches and turn on `default/default`  
+1. If the LED doesn't turn on but you can see new messages in the console, trying flipping the LED
+
+### Notes
 * After setup, the board name (`pyboard`) will be re-assigned to the network ID as specified in main.py (`w-pico` by default) if you restart rshell:  
   `CTRL-X` to exit repl  
   `CTRL-C` to exit rshell  
