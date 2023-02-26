@@ -78,13 +78,12 @@ def connected():
       log.info('(SYNC endpoint) request failed')
       log.exception(e)
     
-    if state:
+    if led.get():
       # wait for BOOTSEL press 60s
       for i in range(60 * 10):
         if bootsel.pressed():
           log.info('BOOTSEL pressed')
           led.off()
-          state = False
           log.info('new LED state:', led.get())
           if OFF_URL:
             log.info('(OFF endpoint) attempting to', OFF_METHOD, OFF_URL)
@@ -98,6 +97,29 @@ def connected():
           log.info('waiting for endpoint change')
           break
         time.sleep(.1)
+    
+    """
+    Uncomment to use BOOTSEL to turn the LED on, too
+    This will add up to 60s of delay to changes from the API endpoint
+    """
+    # else:
+    #   for i in range(60 * 10):
+    #     if bootsel.pressed():
+    #       log.info('BOOTSEL pressed')
+    #       led.on()
+    #       log.info('new LED state:', led.get())
+    #       if ON_URL:
+    #         log.info('(ON endpoint) attempting to', OFF_METHOD, OFF_URL)
+    #         try:
+    #           response = urequests.request(OFF_METHOD, OFF_URL)
+    #           log.info('(ON endpoint) request succeeded')
+    #           response.close()
+    #         except Exception as e:
+    #           log.info('(ON endpoint) request failed')
+    #           log.exception(e)
+    #       log.info('waiting for endpoint change')
+    #       break
+    #     time.sleep(.1)
   
     time.sleep(1)
 
