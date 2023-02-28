@@ -1,3 +1,6 @@
+**This has been moved under [pico-fi](https://freshman.dev/git:pico-fi) → [packs/led-indicator](https://freshman.dev/git:pico-fi/tree/master/src/packs/led-indicator/__init__.py)**
+
+
 ## pico-led-indicator
 
 Sync an LED (or other component) to an endpoint. Press BOOTSEL to turn off  
